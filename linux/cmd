@@ -1,0 +1,316 @@
+history | awk '{CMD[$2]++;count++;}END{for(i in CMD)print CMD[i] "" CMD[i]/count*100 "% " i;}' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
+
+!! 上一命令
+cd - 上一目录
+vi shift + zz 快速保存
+vi esc u 撤销
+ctrl + u  ctrl + k   ctrl + d
+
+export LANG=en_US    zh_CN.UTF-8    zh_CN.GBK    zh_CN.GB18030
+free pstree
+df -h
+du -sh
+netstat -natlpu
+start_udev
+date -s 'yyyy-MM-dd HH:mm:ss'
+hwclock -w
+
+文件总行数: wc -l your_file.txt
+文件夹大小: du -sh dirname ::: du -sm dirname ::: du -sh /* | sort -nr ::: du -sk filename
+
+查看硬盘信息
+lsblk
+硬盘检测
+cat /proc/mdstat
+/sbin/hdparm -t /dev/sdb1
+time dd if=/dev/zero of=/opt/sdd/test bs=4k count=1000000
+time dd if=/dev/urandom of=/opt/sdd/test bs=4k count=10000
+time dd if=/dev/zero of=/opt/sdd/test2 bs=4k count=10000 oflag=direct
+time dd if=/dev/zero of=/opt/sdd/test2 bs=4k count=10000 iflag=direct
+
+当前 CPU 运行在 32 or 64 bit 模式下
+getconf LONG_BIT
+
+查看 CPU 信息
+lscpu
+
+查看当前操作系统发行版信息
+cat /etc/issue | grep Linux
+
+查看机器型号
+dmidecode | grep "Product Name"
+
+查看内存条个数, 每根大小
+dmidecode | grep -A16 "Memory Device$"
+
+显示主板序列号
+dmidecode | grep 'Serial Number'
+
+显示有几块物理网卡
+lspci | grep Eth | wc -l
+dmesg | grep -i 'eth'
+
+网卡信息
+ethtool em1
+
+IP 冲突 ping
+arping -I eth 192.168.1.1
+arp -a
+
+rpm 安装 rpm -ivh ...rpm
+rpm 强制安装 rpm -ivh ...rpm --force --nodeps
+rpm 升级 rpm -Uvh ...rpm
+rpm 查看 rpm -qa | grep -i uuid
+rpm 卸载 rpm -e ...
+
+查看符号链接
+nm -D /usr/lib/libuuid.so | grep uuid
+
+可通过如下方法查询 CPU 情况:
+1. 每个物理 CPU 的逻辑核数:
+	cat /proc/cpuinfo | grep "cores" | uniq
+	cat /proc/cpuinfo | grep "cpu cores" | uniq
+	是否为超线程? 如果有两个逻辑 CPU 具有相同的 "core id", 那么超线程是打开的.
+2. 系统整个 CPU 线程数:
+	cat /proc/cpuinfo | grep "processor" | wc -l
+3. 物理 CPU 个数:
+	cat /proc/cpuinfo | grep "physical id" | sort | uniq | wc -l
+4. 每个物理 CPU 中逻辑 CPU (可能是 core, threads 或 both)的个数:
+	cat /proc/cpuinfo | grep "siblings" | uniq
+	"siblings"  指的是一个物理 CPU 有几个逻辑 CPU
+	"cpu cores" 指的是一个物理 CPU 有几个核
+5. CPU 型号
+	cat /proc/cpuinfo | grep "model name" | uniq
+
+在终端执行 cat /proc/cpuinfo(或 grep -E '(vmx|svm)' /proc/cpuinfo 或 egrep '(vmx|svm)' --color=always /proc/cpuinfo)命令,
+找到 flags 部分, 如果其中输出有 VMX 或 SVM, 即表明支持虚拟化技术
+
+CPU Utilization、Load Average 和 Context Switch Rate
+比如 1 个 1 核 CPU, Load Average < 1 * 1 * 0.7
+     1 个 4 核 CPU, Load Average 必须 < 1 * 4 * 0.7 = 2.8
+vmstat 查看 r(Load Arerage), in(Interrupt) 和 cs(Context Switch)
+vmstat 1 5
+vmstat 1 指每秒统计一次, 其中 cs 列就是指上下文切换的数目. 一般情况下, 空闲系统的上下文切换每秒大概在 1500 以下
+interrupts(in) 非常高, context switch(cs)比较低, 说明这个 CPU 一直在不停的请求资源
+system time(sy) 一直保持在 80％ 以上, 而且上下文切换较低(cs), 说明某个进程可能一直霸占着 CPU(不断请求资源)
+context switch(cs) 比 interrupts(in) 要高得多, 说明内核不得不来回切换进程
+system time(sy) 很高而 user time(us) 很低, 而且加上高频度的上下文切换(cs), 说明正在运行的应用程序调用了大量的系统调用(system call)
+run queue(r) 在 14 个线程以上, 按照这个测试机器的硬件配置(四核), 应该保持在 12 个以内
+r: 如果是连续的大于在系统中的 CPU 的个数表示系统现在运行比较慢, 有多数的进程等待 CPU.
+如果 r 的输出数大于系统中可用 CPU 个数的 4 倍的话, 则系统面临着 CPU 短缺的问题, 或者是 CPU 的速率过低,
+系统中有多数的进程在等待 CPU, 造成系统中进程运行过慢
+
+CPU 的利用率, 75% 以上就比较高了, 结合 Load Average 和 Context Switch Rate 来看, 有可能 CPU 高是因为后两个指标高导致的
+
+kvm (Linux 2.6.20 开始内核开始集成) Eucalyptus Convirt
+lsmod | grep kvm --color=always
+virsh -c qemu:///system list
+egrep '(vmx|svm)' --color=always /proc/cpuinfo 
+para-virtualization  full virtualization
+
+
+查看占用内存最高的 5 个进程
+ps aux | sort -k4nr | head -n 5
+查看占用 CPU 最高的 5 个进程
+ps aux | sort -k3nr | head -n 5
+
+创建虚拟机:
+qemu-img create -f qcow2 diskxx.img 10g
+kvm -hda diskxxx.img -cdrom ~/software/redhat-6.iso -boot d -vnc localhost:1 -m 512m
+service libvirtd status
+
+路由跟踪
+win:  tracert ip
+linux: traceroute ip
+time traceroute -I -z 0.005 -q 1 -n datas.surfilter.com
+
+win 下查看 IP 是否冲突
+nbtstat -a ip
+
+查看 inode
+df -i /dev/sdaX 或者使用 tune2fs -l /dev/sdaX 或者 dumpe2fs -h /dev/sdaX 查看可用 inode 数
+tune2fs -l /dev/sda6 | grep inode
+free inode: xxx
+
+关闭邮件(mail)提示:
+echo "unset MAILCHECK" >> /etc/profile
+/etc/init.d/postfix stop
+
+添加用户
+useradd grid
+passwd grid
+cat /etc/passwd
+
+sar -n DEV 5 10 | grep em1
+sar -n SOCK 2 10
+
+共享内存在 shmall 这个参数中设置, shmall 单位为页,
+换算成内存大小还需要把两个值相乘, 如 shmall = 4194304,
+那么共享内存的大小就是 (4194304 * 4096) / (1024 * 1024 * 1024) = 16G
+cat /proc/sys/kernel/shmall
+
+可以通过 /etc/sysctl.conf 文件中 kernel.shmall 的值来调整共享内存大小
+# vi /etc/sysctl.conf
+kernel.shmall=8388608
+
+修改完之后让它立即生效并确认
+sysctl -p
+
+分页大小, 默认是 4Kb
+getconf PAGE_SIZE
+
+查找进程打开的文件
+lsof | grep 
+lsof -i:2181
+
+统计行数
+wc -l *.txt | awk '{print $1}' | awk '{sum+=$1}END{print sum}'
+
+在文件中查找
+find . -name "*.txt" -exec grep "abc" {} -H \;
+
+最大文件句柄数:
+vi /etc/security/limits.conf
+* soft nofile 102400
+* hard nofile 409600
+* soft nproc 102400
+* hard nproc 409600
+
+说明：* 代表针对所有用户
+nofile 是代表最大文件打开数
+noproc 是代表最大进程数
+
+vi /etc/sysctl.conf
+fs.file-max = 65534
+net.core.somaxconn = 2048
+net.ipv4.tcp_sack = 1
+net.core.rmem_default = 262144
+net.core.wmem_default = 262144
+net.core.rmem_max = 262144
+net.core.wmem_max = 262144
+net.ipv4.tcp_fin_timeout = 30
+
+sysctl -p
+
+参考:
+net.ipv4.tcp_max_tw_buckets = 65535
+net.ipv4.tcp_sack = 1
+net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_rmem = 4096 87380 4194304
+net.ipv4.tcp_wmem = 4096 16384 4194304
+net.core.wmem_default = 8388608
+net.core.rmem_default = 8388608
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.core.netdev_max_backlog = 262144
+net.core.somaxconn = 262144
+net.ipv4.tcp_max_orphans = 3276800
+net.ipv4.tcp_max_syn_backlog = 262144
+net.ipv4.tcp_timestamps = 0
+net.ipv4.tcp_synack_retries = 1
+net.ipv4.tcp_syn_retries = 1
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_mem = 94500000 915000000 927000000
+net.ipv4.tcp_fin_timeout = 1
+net.ipv4.tcp_keepalive_time = 30
+net.ipv4.tcp_keepalive_probes = 3
+net.ipv4.tcp_keepalive_intvl = 90
+net.ipv4.ip_local_port_range = 1024 65000
+fs.file-max = 102400
+==============
+vi /etc/security/limits.conf
+// 加上：
+* soft nofile 102400
+* hard nofile 409600
+* soft nproc 102400
+* hard nproc 409600
+
+* - memlock unlimited
+
+
+# vi /etc/pam.d/login
+// 添加
+session    required     /lib/security/pam_limits.so
+# 注意 64 位操作系统位置
+session    required     /lib64/security/pam_limits.so
+
+==============
+/proc/sys/fs/file-max
+/proc/sys/fs/file-nr
+cat /proc/sys/fs/file-nr
+4483    3550    209695
+该文件与 file-max 相关，它有三个值： 
+已分配文件句柄的数目
+已使用文件句柄的数目
+文件句柄的最大数目
+
+shell
+access.log 是一行一行的，第一个域是 ip 地址。统计次数最多的 10 个 ip 和它的次数，按次数递减输出。
+awk '{S[$1]++} END {for(K in S)printf("%d\t%s\n", S[K], K)}' access.log | sort -nr | head -n 10
+awk '{print $1}' access.log | sort -n | uniq -c | sort -nr | head -n 10
+
+查询替换字符串
+sed -i "s/oldstring/newstring/g" `grep oldstring -rl yourdir`
+
+查 DDOS 攻击
+netstat -na|grep ESTABLISHED|awk '{print }'|awk -F: '{print }'|sort|uniq -c|sort -r +0n
+netstat -na|grep SYN|awk '{print }'|awk -F: '{print }'|sort|uniq -c|sort -r +0n
+
+who –b
+who -r && uptime
+last reboot | head -1
+last -x|grep shutdown | head -1
+
+pkill -KILL -t pts/0 强制踢出
+
+密码问题:
+以 root 身份登陆, 执行：
+# passwd 用户名 (修改密码)
+# useradd 用户名 (添加用户)
+
+具体示例如下：[root@bogon ~]# passwd root
+Changing password for user root.
+New UNIX password:
+BAD PASSWORD: it is based on a dictionary word
+Retype new UNIX password:
+passwd: all authentication tokens updated successfully.
+
+linux 下 root 密码找回方法
+============================================================================
+linux 的 root 享有至高无上的权力, 一旦 root 密码忘记或者被盗,是一件非常头痛的事情,
+那么怎么样才能找回 root 的密码呢, 总结如下：
+(一) Linux 系统密码破解
+1. 在 grub 选项菜单按 e 进入编辑模式
+2. 编辑 kernel 那行 /init 1 (或/single)
+3. 按 B 重启
+4. 进入后执行下列命令
+root@# passwd root (配置root的密码)
+Enter new unix password:输入新的密码
+root@# init 6
+============================================================================
+(二) debian linux 系统密码破解
+1. 在 grub 选项菜单’Debian GNU/Linux,...(recovery mode)’, 按 e 进入编辑模式
+2. 编辑 kernel 那行面的 ro single 改成 rw single init=/bin/bash, 按 b 执行重启
+3. 进入后执行下列命令
+root@(none)# mount -a
+root@(none)# passwd root
+root@(none)# reboot
+============================================================================
+(三) Freebsd 系统密码破解
+1. 开机进入引导菜单
+2. 选择每项(按4)进入单用户模式
+3. 进入之后输入一列命令
+root@# mount -a
+root@# fsck -y
+root@# passwd(修改密码命令)
+
+
+chkconfig --list
+chkconfig --list httpd
+
+chkconfig --add name
+chkconfig --del name
+chkconfig [--level levels] name <on|off|reset>
+chkconfig --level 35 httpd on
+
