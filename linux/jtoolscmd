@@ -1,0 +1,171 @@
+命令备忘:
+ulimit -a
+ulimit –n
+ulimit -c unlimited
+ulimit -s 查看栈的大小, 默认 10240K, 设置栈的大小
+
+-XX:+HeapDumpOnOutOfMemoryError
+(linux 下特有)
+jmap -dump:format=b,file=heap.bin <pid>
+jmap -dump:live,format=b,file=heap.bin <pid>
+jmap -histo <pid> 看看到底什么对象占用了大多数的内存(多执行几次, 以确保正确性)
+jmap -histo:live <pid>
+
+1. 先用 jps 或 ps + grep 找出进程 pid, 比如 30300
+2. top -H -p 30300, 列出该进程的所有线程. 看看哪个线程(pid) 占用最多, 然后将这个 pid 转换为 16 进制, 如 44bf, 注意要小写
+   top -Hp <pid> -d 1 -n 1
+   ps xH 查看所有存在的线程
+   ps -mp <pid> 查看一个进程起的线程数
+   ps -Lf <pid> 查看一个进程起的线程数
+3. jstack 30300 | less, 然后找到 nid=0x44bf
+4. jhat -stack false -refs false -J-Xmx2g /path/to/heap/dump/heap.bin 在 Dump 文件较小时分析
+   jhat -J-Xmx6000m -J-Xms6000m java_pid14375.hprof
+   jhat -J-Xmx512m -J-Xms512m -J-d64 /home/longhao/dump.out  访问: http://localhost:7000
+
+ps -eLo pid,%cpu,lwp | grep -i <pid>
+列出子线程 cpu 占用率等情况, 再对照 jstack 命令得到线程号, 就可定位 cpu 占用高的线程执行到了那里
+ps -eLo pid,lwp,pcpu | grep <pid> | sort -nk 3
+找到 CPU 占用前 3 的线程
+
+(linux下特有)观察运行中的 java 程序的运行环境参数, 参数包括 Java System 属性和 JVM 命令行参数
+jinfo 30300
+
+观察内存情况
+jmap -heap 30300
+
+dump 线程情况
+jstack 30300
+
+pstree 以树结构显示进程
+pstack 30300 显示每个进程的栈跟踪
+
+哪个系统调用造成了上下文切换
+strace -f java -cp . ContextSwitchTest
+
+跟踪库函数的耗时情况: ltrace -fp <pid> -T -c
+跟踪系统调用耗时情况: strace -fp <pid> -T -c
+
+上下文对于 Cache 的影响
+perf stat -e cache-misses java -cp . ContextSwitchTest
+
+export LIBSAPROC_DEBUG=1
+
+查看防火墙
+  # /etc/init.d/iptables status
+  	如果 22 端口被限制则无法登陆, 放开端口 22
+  # /sbin/iptables -I INPUT -p tcp –dport 22 -j ACCEPT
+  # /etc/rc.d/init.d/iptables save
+
+远程监视(jstatd)
+jstatd -J-Djava.security.policy=jstatd.all.policy
+-nr 当一个存在的 RMI Registry 没有找到时, 不尝试创建一个内部的 RMI Registry
+-p port 端口号, 默认为 1099
+-n rminame 默认为 JStatRemoteHost; 如果多个 jstatd 服务在同一台主机上, rminame 唯一确定一个 jstatd 服务
+-J jvm 选项
+创建安全策略文件, 并命名为 jstatd.all.policy
+grant codebase "file:${java.home}/../lib/tools.jar" {
+  permission java.security.AllPermission;
+};
+
+jstatdsh.sh
+#! /bin/sh
+> console.log
+nohup jstatd -J-Djava.security.policy=jstatd.all.policy > console.log 2>&1 & 
+
+远程观察:
+jstat -gc 15117@192.168.18.5 1000 3
+
+远程监视(ssh)
+ssh -v -D 9696 root@192.168.90.192
+Tools->Options->Network – Manual Proxy Settings – check it and configure SOCKS Proxy at localhost and port 9696
+File -> Add Remote Host… – type the IP or hostname of the remote machine
+
+JStatD Connection
+Available stats: JVM arguments, Monitor: Heap, classes, threads monitoring (but not CPU). Sampler and MBeans require JMX.
+
+JMX
+yourJavaCommand... -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=1098
+Right-click on the remote host you have added and select Add JMX Connection …, type the JMX port you have chosen.
+You should see similar logs as with jstatd.
+Available stats: Also CPU usage, system properties, detailed Threads report with access to stack traces, CPU sampling (memory sampling not supported).
+
+Java 线程数量的因素:
+Java 虚拟机本身: -Xms, -Xmx, -Xss;
+
+系统限制:
+/proc/sys/kernel/pid_max
+/proc/sys/kernel/threads-max
+max_user_process (ulimit -u)
+/proc/sys/vm/max_map_count
+
+查看当前 JRE 默认的堆大小
+java -server -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version | grep -i heapsize
+java -client -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version | grep -i heapsize
+
+-XX:+PrintFlagsFinal
+这个参数本身只从 JDK 6 update 21 开始才可以用, 之前的 Oracle/Sun JDK 则用不了.
+
+NUMA 感知的分配器是为 Solaris (>= 9u2) 和 Linux(kernel >= 2.6.19, glibc >= 2.6.1) 操作系统而实现的.
+NUMA 需要硬件, 操作系统, JVM 同时启用, 才能启用, Linux 可以用 numactl 来配置 NUMA
+JDK 6 update 18, 通过 -XX:+UseNUMA 标记打开或关闭并行.
+在 8 芯片 Opteron 机器上的使用 SPEC JBB 2005 基准进行评估时,
+NUMA 感知的操作系统能够带来 30%(32 位操作系统)到 40%(64 位操作系统)的性能提高
+
+jstat
+可以观察到 classloader, compiler, gc 相关信息
+具体参数 如下:
+-class: 统计 class loader 行为信息
+-compile: 统计编译行为信息
+-gc: 统计 jdk gc 时 heap 信息
+-gccapacity: 统计不同的 generations (包括新生区, 老年区, permanent 区)相应的 heap 容量情况
+-gccause: 统计 gc 的情况, (同 -gcutil)和引起 gc 的事件
+-gcnew: 统计 gc 时, 新生代的情况
+-gcnewcapacity: 统计 gc 时, 新生代 heap 容量
+-gcold: 统计 gc 时, 老年区的情况
+-gcoldcapacity: 统计 gc 时, 老年区 heap 容量
+-gcpermcapacity: 统计 gc 时, permanent 区 heap 容量
+-gcutil: 统计 gc 时, heap 情况
+-printcompilation: 打印已经被 JIT 编译的方法
+
+jstat -gc 30300 2000 10 (每隔 2 秒监控一次, 共做 10)
+jstat -gccause 30300 5000 (每隔 5 秒监控一次)
+
+jps | grep -v "grep\|Jps" | awk '{print $1}' | xargs kill -9
+
+java.util.concurrent.TimeUnit TimeUnit.MILLISECONDS.sleep(1)
+
+-server
+-Xmn2000m
+-Xms10000m
+-Xmx10000m
+-Xss256k
+-XX:PermSize=256M
+-XX:MaxPermSize=512M
+-XX:+UseParNewGC
+-XX:+UseConcMarkSweepGC
+-XX:CMSInitiatingOccupancyFraction=88
+-XX:+UseCMSInitiatingOccupancyOnly
+-XX:SurvivorRatio=8
+-XX:MaxTenuringThreshold=1
+-XX:+AggressiveOpts
+-XX:+UseNUMA
+-XX:+UseCompressedOops
+-XX:+HeapDumpOnOutOfMemoryError
+
+-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000
+
+-Dcom.sun.management.jmxremote.port=18100
+-Dcom.sun.management.jmxremote.authenticate=false
+-Dcom.sun.management.jmxremote.pwd.file=/usr/lib/jvm/openjdk-1.6.0.0/jre/lib/management/jmxremote.password
+-Dcom.sun.management.jmxremote.ssl=false
+-Dcom.sun.management.jmxremote.authenticate=false
+-Dcom.sun.management.jmxremote.pwd.file
+
+JAVA_HOME=/opt/java/jdk1.7.0_40
+PATH=$PATH:$JAVA_HOME/bin
+
+export JAVA_HOME PATH
+
+查看是否支持 NUMA
+grep -i numa /var/log/dmesg
+
