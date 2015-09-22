@@ -1,0 +1,141 @@
+文本分类与聚类(text categorization and clustering)
+Information Retrieval: IR 信息检索
+
+1. 概述
+广义的分类(classification 或者 categorization)有两种含义: 一种含义是有指导的学习(supervised learning)过程, 另一种是无指导的学习(unsupervised learning)过程.
+通常前者称为分类, 后者称为聚类(clustering), 后文中提到的分类都是指有指导的学习过程.
+给定分类体系, 将文本集中的每个文本分到某个或者某几个类别中, 这个过程称为文本分类(text categorization).
+将文本集合分组成多个类或簇, 使得在同一个簇中的文本内容具有较高的相似度, 而不同簇中的文本内容差别较大, 这个过程称为文本聚类(text clustering).
+[Berry, 2003] 详细描述了文本挖掘技术. [Sebastiani, 2002] 提供了对文本分类的综述. [Xu & Wunsch, 2005] 对聚类算法做了全面的描述, [He, 1999] 则重点讲述了聚类算法在 IR 中的应用.
+
+2. 文本分类
+文本分类过程可以分为手工分类和自动分类. 前者最著名的实例是 yahoo 的网页分类体系, 是由专家定义了分类体系, 然后人工将网页分类. 这种方法需要大量人力, 现实中已经采用的很少了.
+自动文本分类(automatic text categorization)算法大致可以分为两类: 知识工程(knowledge engineering)方法和机器学习(machine learning)方法.
+知识工程方法指的是由专家为每个类别定义一些规则, 这些规则代表了这个类别的特征, 自动把符合规则的文档划分到相应的类别中. 这方面最著名的系统是 CONSTRUE.
+上个世纪 90 年代之后, 机器学习方法成为主导. 机器学习方法与知识工程方法相比, 能够达到相似的精确度, 但是减少了大量的人工参与.
+
+2.1 文本分类的步骤
+典型的文本分类过程可以分为三个步骤:
+1. 文本表示(Text Representation)
+	这一过程的目的是把文本表示成分类器能够处理的形式. 最常用的方法是向量空间模型, 即把文本集表示成词－文档矩阵, 矩阵中每个元素代表了一个词在相应文档中的权重.
+选取哪些词来代表一个文本, 这个过程称为特征选择. 常见的特征选择方法有文档频率、信息增益、互信息、期望交叉熵等等, [Yang & Pedersen, 1997]对这几种方法做了比较.
+为了降低分类过程中的计算量, 常常还需要进行降维处理, 比如 LSI.
+
+2. 分类器构建(Classifier Construction)
+	这一步骤的目的是选择或设计构建分类器的方法. 没有一种通用的方法可以适用所有情况. 不同的方法有各自的优缺点和适用条件, 要根据问题的特点来选择一个分类器.
+选定方法之后, 在训练集上为每个类别构建分类器, 然后把分类器应用于测试集上, 得到分类结果.
+
+3. 效果评估(Classifier Evaluation)
+	在分类过程完成之后, 需要对分类效果进行评估. 评估过程应用于测试集(而不是训练集)上的文本分类结果, 常用的评估标准由 IR 领域继承而来, 包括查全率、查准率、F1 值等等.
+对于某一类别 i, 查全率 ri=li/ni, 其中 ni 为所有测试文档中, 属于第 i 类的文档个数; li 是经分类系统输出分类结果为第 i 类且结果正确的文档个数.
+查准率 pi=li/mi, 其中 mi 是经分类系统输出分类结果为第 i 类的文档个数, li 是经分类系统输出分类结果为第i类且结果正确的文档个数.
+F1 值为查全率和查准率的调和平均数, 相对于最简单的训练集-测试集评估方法而言, 还有一种称为 K-fold cross validation 的方法,
+即把所有标记的数据划分成 k 个子集, 对于每个子集, 把这个子集当作训练集, 把其余子集作为测试集; 这样执行 k 次, 取各次评估结果的平均值作为最后的评估结果.
+	K-fold cross validation(K-折 交叉验证): 将训练样本集随机地分成 k 个互不相交的子集, 每个折的大小大致相等.
+利用 k-1 个训练子集, 对给定的一组参数建立回归模型, 利用剩下的最后一个子集的 MSE 评估参数的性能.
+根据以上过程重复 K 次, 因此每个子集都有机会进行测试, 根据 k 次迭代后得到的 MSE 平均值来估计期望泛化误差, 最后选择一组最优的参数.
+
+2.2 常见的文本分类方法
+1. Rocchio 方法
+每一类确定一个中心点(centroid), 计算待分类的文档与各类代表元间的距离, 并作为判定是否属于该类的判据.
+Rocchio 方法最早由 [Hull, 1994]引入文本分类领域, 后来又有很多文章进行了改进. 
+Rocchio 方法的特点是容易实现, 效率高. 缺点是受文本集分布的影响, 比如计算出的中心点可能落在相应的类别之外 [Sebastiani, 2002].
+
+2. 朴素贝叶斯(naive bayes)方法
+将概率论模型应用于文档自动分类, 是一种简单有效的分类方法.
+使用贝叶斯公式, 通过先验概率和类别的条件概率来估计文档对某一类别的后验概率, 以此实现对此文档所属类别的判断. [Lewis, 1998]介绍了朴素贝叶斯方法的发展和各种变体及特点.
+
+3. K 近邻(K-Nearest Neightbers, KNN)方法
+从训练集中找出与待分类文档最近的 k 个邻居(文档), 根据这 k 个邻居的类别来决定待分类文档的类别.
+KNN 方法的优点是不需要特征选取和训练, 很容易处理类别数目多的情况, 缺点之一是空间复杂度高. KNN 方法得到的分类器是非线性分类器. 此方法最早由 [Yang & Chute, 1994]提出.
+
+4. 支持向量机(SVM)方法
+对于某个类别, 找出一个分类面, 使得这个类别的正例和反例落在这个分类面的两侧, 而且这个分类面满足: 到最近的正例和反例的距离相等, 而且是所有分类面中与正例(或反例)距离最大的一个分类面.
+SVM 方法最早由[Joachims, 1998]引入到文本分类中. SVM 方法的优点是使用很少的训练集, 计算量小; 缺点是太依赖于分类面附近的正例和反例的位置, 具有较大的偏执.
+其他常用的方法还包括决策树方法和神经网络方法, 详见文献[Sebastiani, 2002].
+
+2.3 常用源码和数据集
+Weka 是一个开源的机器学习软件, 集成了数据预处理、机器学习算法、可视化功能, 实现了大部分常见的机器学习算法, 包括分类.
+Weka 是国外著名教材《Data Mining: Practical Machine Learning Tools and Techniques (Second Edition)》所采用的实验平台.
+与 Weka 相竞争的另一个开源的机器学习软件是Yale, 自称实现了 Weka 的所有算法, 兼容 Weka 的数据格式. 现在已经商业化.
+与 Weka 和 Yale 不同, Bow 是专门为文本处理设计的开源包. Bow 包含三个部分: Rainbow(文本分类)、Arrow(文本检索)和 Crossbow(文本聚类).
+文本分类常用的数据集有 REUTERS, 20NEWSGROUP, OHSUMED 等语料库.
+
+3. 文本聚类
+文本聚类有很多应用, 比如提高 IR 系统的查全率, 导航/组织电子资源, 等等.
+根据聚成的簇的特点, 聚类技术通常分为层次聚类(hierarchical clustering)和划分聚类(partitional clustering).
+前者比较典型的例子是凝聚层次聚类算法, 后者的典型例子是 K-Means 算法.
+近年来出现了一些新的聚类算法, 它们基于不同的理论或技术, 比如图论, 模糊集理论, 神经网络以及核技术(kernel techniques)等等.
+
+3.1 文本聚类的步骤
+与文本分类类似, 文本聚类过程可以分为 3 个步骤:
+
+1. 文本表示(Text Representation)
+把文档表示成聚类算法可以处理的形式. 所采用的技术请参见 文本分类 部分.
+
+2. 聚类算法选择或设计(Clustering Algorithms)
+	算法的选择, 往往伴随着相似度计算方法的选择. 在文本挖掘中, 最常用的相似度计算方法是余弦相似度.
+聚类算法有很多种, 但是没有一个通用的算法可以解决所有的聚类问题. 因此, 需要认真研究要解决的问题的特点, 以选择合适的算法. 后面会有对各种文本聚类算法的介绍.
+
+3. 聚类评估(Clustering Evaluation)
+	因为没有训练文档集合, 所以评测聚类效果是比较困难的. 常用的方法是: 选择人工已经分(聚)好类或者做好标记的文档集合作为测试集合,
+聚类结束后, 将聚类结果与已有的人工(聚)分类结果进行比较. 常用评测指标也是查全率、查准率及 F1 值.
+
+3.2 常见的文本聚类算法
+1．层次聚类方法
+	层次聚类可以分为两种: 凝聚(agglomerative)聚类和划分(divisive)聚类. 凝聚方法把每个文本作为一个初始簇, 经过不断的合并过程, 最后成为一个簇. 划分方法的过程正好与之相反.
+划分方法在现实中采用较少, 有关论述请见[Kaufman & Rousseeuw, 1990]. 层次聚类可以得到层次化的聚类结果, 但是计算复杂度比较高, 不能处理大量的文档.
+近年来出现了新的层次聚类算法, 包括 CURE[Guha, Rastogi & Shim, 1998], ROCK[Guha, Rastogi & Shim, 2000], Chameleon[Karypis, Han & V. Kumar, 1999]和 BIRCH[Zhang, Ramakrishnan & Livny, 1996].
+
+2．划分方法
+	K-Means 算法是最常见的划分方法. 给定簇的个数 k, 选定 k 个文本分别作为 k 个初始簇, 将其他的文本加入最近的簇中, 并更新簇的中心点, 然后再根据新的中心点对文本重新划分;
+当簇不再变化时或经过一定次数的迭代之后, 算法停止. K-Means 算法复杂度低, 而且容易实现, 但对例外和噪声文本比较敏感.
+另外一个问题是, 没有一个好的办法确定 k 的取值. 相关文献参见[Forgy, 1965][Xu & Wunsch, 2005].
+
+3．基于密度的方法
+	为了发现任意形状的聚类结果, 提出了基于密度的方法. 这类方法将簇看作是数据空间中被低密度区域分割开的高密度区域.
+常见的基于密度的方法有 DBSCAN, OPTICS, DENCLUE 等等, 参考文献见[Han & Kamber, 2006].
+
+4．神经网络方法
+	神经网络方法将每个簇描述为一个标本, 标本作为聚类的"原型", 不一定对应一个特定的数据, 根据某些距离度量, 新的对象被分配到与其最相似的簇中.
+比较著名的神经网络聚类算法有: 竞争学习(competitive learing)和自组织特征映射(self-organizing map)[Kohonen, 1990].
+神经网络的聚类方法需要较长的处理时间和复杂的数据复杂性, 所以不适用于大型数据的聚类.
+其他常见的方法包括基于图论的聚类算法[Jain & Dubes, 1988]、基于核的聚类算法[Müller, Mika, R?tsch, et. al, 2001]、模糊聚类算法[H?ppner, Klawonn & Kruse, 1999], 等等.
+
+3.3 常用的源码包和数据集
+	前面介绍的 Weka、Yale、Bow 这三个工具已经包含了常用的聚类算法, 下面再介绍几个专门的聚类软件:
+
+Scipy: http://www.scipy.org
+The open source clustering softwares: http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/software.htm
+MICMOD: http://www-math.univ-fcomte.fr/mixmod/index.php
+The Semantic Indexing Project: http://www.knowledgesearch.org
+JUNG: http://jung.sourceforge.net
+CompLearn: http://complearn.org
+
+目前还没有专门为文本聚类设计的数据集, 一般可以采用文本分类的数据集(前面有介绍).
+
+转自: http://fusion.grids.cn/wiki/pages/viewpage.action?pageId=1033
+
+参考文献
+[Berry, 2003]Michael W. Berry, "Survey of Text Mining: Clustering, Classification, and Retrieval", Springer, 2003
+[Forgy, 1965] E. Forgy, "Cluster analysis of multivariate data: Efficiency vs. interpretability of classifications," Biometrics, vol. 21, 1965.
+[Guha, Rastogi & Shim, 1998] S. Guha, R. Rastogi, and K. Shim, "CURE: An efficient clustering algorithm for large databases," in Proc. ACM SIGMOD Int. Conf. Management of Data, 1998, pp. 73-84.
+[Guha, Rastogi & Shim, 2000]S. Guha, R. Rastogi, and K. Shim, "ROCK: A robust clustering algorithm for categorical attributes," Inf. Syst., vol. 25, no. 5, pp. 345-366, 2000.
+[Han & Kamber, 2006] J Han, M Kamber, "Data Mining: Concepts and Techniques", version 2, 2006
+[He, 1999] Q He,A review of clustering algorithms as applied in IR, Univ. Illinois at Urbana-Champaign, Tech. Rep. 1999
+[H?ppner, Klawonn & Kruse, 1999] F. H?ppner, F. Klawonn, and R. Kruse, Fuzzy Cluster Analysis: Methods for Classification, Data Analysis, and Image Recognition. New York: Wiley, 1999.
+[Hull, 1994] D. HULL, Improving text retrieval for the routing problem using latent semantic indexing. In Proceedings of SIGIR-94, 17th ACM International Conference on Research and Development in Information Retrieval (Dublin, Ireland, 1994), 282-289.
+[Jain & Dubes, 1988] A. Jain and R. Dubes,  Algorithms for Clustering Data. Englewood Cliffs, NJ: Prentice-Hall, 1988.
+[Joachims, 1998] T. Joachims, Text categorization with support vector machines: learning with many relevant features. In Proceedings of ECML-98, 10th European Conference on Machine Learning (Chemnitz, Germany, 1998), 137-142.
+[Karypis, Han & V. Kumar, 1999] G. Karypis, E. Han, and V. Kumar, "Chameleon: Hierarchical clustering using dynamic modeling," IEEE Computer, vol. 32, no. 8, pp. 68-75, Aug. 1999.
+[Kaufman & Rousseeuw, 1990]L. Kaufman and P. Rousseeuw, Finding Groups in Data: An Introductionto Cluster Analysis: Wiley, 1990.
+[Kohonen, 1990]T. Kohonen, "The self-organizing map," Proc. IEEE, vol. 78, no. 9, pp. 1464-1480, Sep. 1990.
+[Lewis, 1998] D.D.Lewis,  Naive (Bayes) at forty: The independence assumption in information retrieval. In Proceedings of ECML-98, 10th European Conference on Machine Learning,1998
+[Müller, Mika, R?tsch, et. al, 2001]K. Müller, S. Mika, G. R?tsch, K. Tsuda, and B. Sch?lkopf, "An introduction to kernel-based learning algorithms," IEEE Trans. Neural Netw.,vol. 12, no. 2, pp. 181-201, Mar. 2001.
+[Sebastiani, 2002] F Sebastiani, "Machine learning in automated text categorization", ACM Computing Surveys (CSUR), 2002
+[Steinbach, Karypis & Kumar, 2000]M Steinbach, G Karypis, V Kumar, "A comparison of document clustering techniques",  KDD Workshop on Text Mining, 2000
+[Xu & Wunsch, 2005] R Xu, D Wunsch, Survey of clustering algorithms,  IEEE Transactions on Neural Networks, 2005
+[Yang & Chute, 1994] Y. Yang, C. G. Chute. An example-based mapping method for text categorization and retrieval. ACM Trans. Inform. Syst. 12, 3, 252-277.
+[Yang & Pedersen , 1997 ] Y. Yang, J.O.Pedersen. A Comparative Study on Feature Selection in Text Categorization Proceedings of the Fourteenth International Conference on Machine Learning (ICML'97), 1997.
+[Zhang, Ramakrishnan & Livny, 1996]T. Zhang, R. Ramakrishnan, and M. Livny, "BIRCH: An efficient data clustering method for very large databases," in Proc. ACM SIGMOD Conf. Management of Data, 1996, pp. 103-114.
+

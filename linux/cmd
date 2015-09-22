@@ -25,8 +25,10 @@ cat /proc/mdstat
 /sbin/hdparm -t /dev/sdb1
 time dd if=/dev/zero of=/opt/sdd/test bs=4k count=1000000
 time dd if=/dev/urandom of=/opt/sdd/test bs=4k count=10000
-time dd if=/dev/zero of=/opt/sdd/test2 bs=4k count=10000 oflag=direct
-time dd if=/dev/zero of=/opt/sdd/test2 bs=4k count=10000 iflag=direct
+time dd if=/dev/zero of=/opt/sdd/test2 bs=4k count=10000 oflag=direct,nonblock
+time dd if=/opt/sdd/test2 of=/dev/null bs=4k count=10000 iflag=direct,nonblock
+
+iostat -xdm 3 10
 
 当前 CPU 运行在 32 or 64 bit 模式下
 getconf LONG_BIT

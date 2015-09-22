@@ -1,0 +1,54 @@
+LingPipe 是 alias-i 公司开发的一款自然语言处理开源 Java 软件包, 目前最高版本是 4.1.0
+LingPipe 的优势是:
+比较全面的覆盖自然语言处理的各个分支, 文本分词, 聚类, 语义情感分析, 领域知识学习等等
+具有全套在 research 上免费的源码, 样列代码, 测试代码(商业与非商业均同一套代码), 并且文档详细, 对于其中模型所参考的论文都引用出来, 适合研究学习.
+作为相对开源资源缺少的领域, 项目一直持续更新中.
+
+包含的模块:
+主题分类(Top Classification): 基于文本语言模型训练, 归类
+命名实体识别(Named Entity Recognition): 基于 first-best, n-best and per-entity confidencemodes 识别, 以及训练与评估识别器
+聚类(Clustering): 基于 single-link and complete-link 多层聚类, 包裹一些聚类评估技术
+词性标注(Part-of Speech Tagging):
+句题检测(Sentence Detection):
+拼写更正(Spelling Correction): 基于"你要找的是"风格的检查引擎
+数据库文本挖掘(Database Text Mining)
+字符串比较(String Comparison)：基于距离与相似度测量, 包括权重距离, TF/IDF 距离, Jaccard distance, Jaro-Winkler distance, 等
+兴趣短语检测(Interseting Phrase Detection)
+字符语言建模(Character Language Modeling)
+中文分词(Chinese WordSegmentation) 基于空格分割类似训练库, 机器学习, 发现认知新词
+数据库文本挖掘(Database Text Mining)
+情感分析(Sentiment Analysis) 基于文本聚类
+断字识音(Hyphenation and Syllabification)
+语言辨别(Language Identification)
+奇异值分解(Singular Value Decomposition)
+逻辑回归 (Logistic Regression)
+期望最大化(Expectation Maximization)
+词义排歧(Word Sense Disambiguation)
+
+LingPipe 包含资源:
+Papaer & language material: source, 介绍中均包含有所引用资源
+
+Academia Sinica(AS): 中央研究院
+HK City Uni/City University Hong Kong/HK CityU (HK): 香港城市大学
+Beijing U/Peking University (PK): 北京大学
+Microsoft Research(MSRC): 微软亚洲研究院
+Nat Uni Singapore: 新加坡国立大学
+Harbin Inst: 哈尔滨工业大学
+Stanford: 斯坦福大学
+Nara Inst: 奈良先端科学技术大学院大学
+
+情感分析:
+Basic Polarity Analysis 基于极性分析
+Basic Subjectivity Analysis 基于主观性分析
+Hierarchical Polarity Analysis 分层极性分析
+
+
+unigram, bigram,trigram, 是自然语言处理(NLP)中的问题
+unigram: 单个 word
+bigram:  双 word
+trigram: 3 word
+比如:
+西安交通大学:
+unigram 形式为：西/安/交/通/大/学
+bigram 形式为： 西安/安交/交通/通大/大学
+

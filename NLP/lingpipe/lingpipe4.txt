@@ -1,0 +1,66 @@
+C:\carp\mycvs\lingpipe\demos\tutorial\cluster>ant john-smith
+Buildfile: build.xml
+
+compile:
+    [javac] Compiling 1 source file to C:\carp\mycvs\lingpipe\demos\tutorial\cluster\b
+
+john-smith:
+     [java] Category from file=..\..\data\johnSmith\0
+     [java] Category from file=..\..\data\johnSmith\1
+     [java] Category from file=..\..\data\johnSmith\10
+     ...
+     [java]
+     [java]  --------------------------------------------------------
+     [java] |  K  |  Complete      |  Single        |  Cross         |
+     [java] |     |  P    R    F   |  P    R    F   |  P    R    F   |
+     [java]  --------------------------------------------------------
+     [java] |   1 | 0.23 1.00 0.38 | 0.23 1.00 0.38 | 1.00 1.00 1.00 |
+     [java] |   2 | 0.45 0.96 0.61 | 0.23 1.00 0.38 | 0.50 0.99 0.66 |
+     [java] |   3 | 0.45 0.96 0.61 | 0.24 1.00 0.38 | 0.50 0.99 0.66 |
+     [java] |   4 | 0.54 0.96 0.69 | 0.24 1.00 0.39 | 0.42 0.99 0.59 |
+     [java] |   5 | 0.44 0.55 0.49 | 0.24 1.00 0.39 | 0.30 0.97 0.45 |
+     [java] |   6 | 0.44 0.55 0.49 | 0.24 0.99 0.39 | 0.30 0.97 0.45 |
+     [java] |   7 | 0.42 0.48 0.45 | 0.24 0.99 0.39 | 0.27 0.95 0.42 |
+     [java] |   8 | 0.42 0.47 0.44 | 0.25 0.98 0.39 | 0.27 0.95 0.42 |
+     [java] |   9 | 0.40 0.43 0.42 | 0.25 0.98 0.40 | 0.25 0.94 0.40 |
+     [java] |  10 | 0.40 0.43 0.42 | 0.25 0.98 0.40 | 0.25 0.92 0.40 |
+     [java] |  15 | 0.55 0.32 0.40 | 0.27 0.98 0.42 | 0.14 0.92 0.25 |
+     [java] |  20 | 0.65 0.29 0.41 | 0.28 0.95 0.43 | 0.12 0.91 0.21 |
+     [java] |  25 | 0.80 0.28 0.42 | 0.29 0.91 0.44 | 0.10 0.92 0.18 |
+     [java] |  30 | 0.82 0.23 0.36 | 0.29 0.84 0.43 | 0.09 0.89 0.16 |
+     [java] |  35 | 0.83 0.23 0.36 | 0.31 0.83 0.45 | 0.09 0.88 0.16 |
+     [java] |  40 | 0.82 0.18 0.30 | 0.31 0.79 0.45 | 0.08 0.91 0.15 |
+     [java] |  45 | 0.83 0.17 0.28 | 0.58 0.79 0.67 | 0.14 0.93 0.24 |
+     [java] |  50 | 0.85 0.17 0.28 | 0.60 0.77 0.67 | 0.14 0.93 0.25 |
+     [java] |  60 | 0.87 0.15 0.25 | 0.77 0.68 0.72 | 0.18 0.95 0.30 |
+     [java] |  61 | 0.87 0.15 0.25 | 0.77 0.68 0.72 | 0.18 0.95 0.30 |
+     [java] |  62 | 0.88 0.15 0.25 | 0.77 0.68 0.72 | 0.18 0.95 0.30 |
+     [java] |  63 | 0.85 0.12 0.21 | 0.83 0.68 0.75 | 0.17 0.94 0.28 |
+     [java] |  64 | 0.85 0.12 0.21 | 0.86 0.68 0.76 | 0.16 0.89 0.26 |
+     [java] |  65 | 0.85 0.11 0.20 | 0.87 0.68 0.76 | 0.15 0.88 0.26 |
+     [java] |  66 | 0.85 0.11 0.20 | 0.87 0.68 0.76 | 0.15 0.89 0.26 |
+     [java] |  67 | 0.85 0.11 0.20 | 0.93 0.68 0.79 | 0.15 0.85 0.26 |
+     [java] |  68 | 0.85 0.11 0.20 | 0.93 0.66 0.77 | 0.16 0.84 0.26 |
+     [java] |  69 | 0.85 0.11 0.20 | 0.93 0.66 0.77 | 0.15 0.84 0.26 |
+     [java] |  70 | 0.86 0.11 0.20 | 0.93 0.62 0.74 | 0.16 0.83 0.27 |
+     [java] |  71 | 0.86 0.10 0.18 | 0.92 0.52 0.67 | 0.17 0.82 0.29 |
+     [java] |  72 | 0.85 0.10 0.18 | 0.92 0.51 0.65 | 0.17 0.80 0.28 |
+     [java] |  73 | 0.85 0.10 0.17 | 0.91 0.42 0.58 | 0.20 0.80 0.32 |
+     [java] |  80 | 0.92 0.09 0.17 | 0.94 0.40 0.56 | 0.21 0.87 0.33 |
+     [java] |  90 | 0.98 0.09 0.16 | 0.97 0.30 0.46 | 0.27 0.94 0.42 |
+     [java] | 100 | 0.98 0.07 0.14 | 0.96 0.19 0.32 | 0.36 0.95 0.52 |
+     [java] | 125 | 1.00 0.06 0.12 | 1.00 0.07 0.13 | 0.85 0.96 0.90 |
+     [java] | 150 | 1.00 0.04 0.08 | 1.00 0.04 0.08 | 0.93 0.97 0.95 |
+     [java] | 175 | 1.00 0.03 0.06 | 1.00 0.03 0.06 | 1.00 1.00 1.00 |
+     [java] | 197 | 1.00 0.02 0.04 | 1.00 0.02 0.04 | 1.00 1.00 1.00 |
+     [java]  --------------------------------------------------------
+
+1. 在高召回率下完整链的精度比较好
+	完整链精度 0.95 情况下达到 0.54, 而单链精度只有 0.28.
+2. 在精度 0.95 下高召回率下完全相反
+	单链精度 0.95 下召回率 0.30, 而完整链只有 0.09
+
+This idea of clustering documents referring to John Smith is implicitly doing a kind of unsupervised word sense disambiguation (WSD). For instance, rather than documents containing John Smith, one might choose documents containing other ambiguous words or phrases, either real or artificially generated.
+
+Grouping together contexts for words in this way is often known as bootstrapping in the computational linguistics literature (not related to the statistical technique of bootstrap estimation). In the bootstrapping case, often a few supervised examples are provided as a starting point.
+

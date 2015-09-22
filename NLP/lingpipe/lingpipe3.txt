@@ -1,0 +1,36 @@
+LingPipe 是一个自然语言处理的 Java 开源工具包. 目前已有很丰富的功能, 包括:
+主题分类		Top Classification
+命名实体识别	Named Entity Recognition
+词性标注		Part-of Speech Tagging
+句题检测		Sentence Detection
+查询拼写检查	Query Spell Checking
+兴趣短语检测	Interseting Phrase Detection
+聚类			Clustering
+字符语言建模	Character Language Modeling
+医学文献下载/解析/索引	MEDLINE Download, Parsing and Indexing
+数据库文本挖掘	Database Text Mining
+中文分词		Chinese Word Segmentation
+情感分析		Sentiment Analysis
+语言辨别		Language Identification
+
+Lingpipe 是 alias 公司开发的一款自然语言处理软件包, 功能非常强大, 最重要的是文档超级详细, 每个模型甚至连参考论文都列出来了, 不仅使用方便, 也非常适合模型的学习.
+项目地址：http:/alias-i.com/lingpipe/
+SigHan06 中有一篇 paper, 关于 Alias-i 公司的 Bob Carpenter 所提交的参评报告 "Character Language Models for Chinese Word Segmentation and Named Entity Recognition"
+看到了他们开发的 LingPipe NLP Toolkit, 一个自然语言处理的 Java 开源工具包.
+可以免费下载, 而且开源, 支持中文, 不仅仅是对代码结构的说明, 而且还提供了算法思想文档和相关的资源, 如测试数据集、相关论文等, 一个不错的 toolkit.
+
+包括的模块:
+　　主题分类(Top Classification)、命名实体识别(Named Entity Recognition)、词性标注(Part-of Speech Tagging)、句题检测(Sentence Detection)、
+		查询拼写检查(Query Spell Checking)、兴趣短语检测(Interseting Phrase Detection)、聚类(Clustering)、
+		字符语言建模(Character Language Modeling)、医学文献下载/解析/索引(MEDLINE Download, Parsing and Indexing)、
+		数据库文本挖掘(Database Text Mining)、中文分词(Chinese Word Segmentation)、情感分析(Sentiment Analysis)、语言辨别(Language Identification)等 
+　　Feature Overview 
+　　LingPipe’s information extraction and data mining tools:
+　　* track mentions of entities (e.g. people or proteins); 实体跟踪(如, 人物、蛋白质)
+　　* link entity mentions to database entries; 链接命名实体数据库中记录
+　　* uncover relations between entities and actions; 发现实现和行为间关系
+　　* classify text passages by language, character encoding, genre, topic, or sentiment; 通过语言、字体编码、类型、主题和情感对文本分类
+　　* correct spelling with respect to a text collection; 拼写检查
+　　* cluster documents by implicit topic and discover significant trends over time; and 通过隐藏主题对文档聚类和基于时间序列的趋势发现
+　　* provide part-of-speech tagging and phrase chunking. 提供词性标注和短语组块
+
