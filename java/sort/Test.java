@@ -71,10 +71,10 @@ public class Test {
 	}
 	
 	private static void swap(int[] d, int i, int j) {
-        int t = d[i];
-        d[i] = d[j];
-        d[j] = t;
-    }
+        	int t = d[i];
+        	d[i] = d[j];
+        	d[j] = t;
+	}
 	
 	public static void main(String[] args) {
 		int[] d = {5, 3, 9, 7, 2, 6, 1};
