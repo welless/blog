@@ -16,8 +16,8 @@ public class Test {
 	 * 希尔排序: 实质上是分组插入算法. 改进的直接插入算法, 速度快, 但不是稳定排序.
 	 */
 	public static void insertSort(int[] d) {
-		int t = 0;
-		for(int i = 1; i < d.length; i++) {
+		int t = 0, len = d.length;
+		for(int i = 1; i < len; i++) {
 			if(d[i] < d[i - 1]) {
 				t = d[i];
 				int j = 0;
