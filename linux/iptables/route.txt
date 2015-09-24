@@ -1,0 +1,71 @@
+Destination: 路由表条目使用的网络范围. 如果一个 IP 数据包的目的地址是 route 输出中某一行的网络的某个部分, 那么将会使用这个条目来路由这个数据包.
+Gateway:	 指的是一台主机, 接受发给指定 Destination 的数据包. 因为这个输出是发自一台主机的(而不是一个作为专门路由器的计算机的),
+			 所以路由字段可以是星号(*) 或是默认网关; 星号表示 Destination 是在主机所属的网络(因此不需要路由),
+			 默认网关指的是将所有非本地的流量都发送到的一个指定 IP.
+Flags:		 9 个单字母的标志位, 表示路由表条目的信息. U 表示路由启动; G 表示路由指向网关、
+			 大多数其他标志(都可以通过输入 manroute 在 route 命令的在线帮助手册中找到)只用于专门的路由器, 而不是一台单机, 表示路由是如何通过路由守护进程来创建和更新.
+Metric: 	 到达指定网络所需的中转数(路由器的数目), 在 Linux 内核中没有用.
+Ref:		 对这个路由的引用次数, 在 Linux 内核中没有用.
+Use:		 这个路由器被路由软件查寻的次数, 可以粗略估计通向指定网络地址的网络流量.
+Iface:		 表示目的地址, 指定网络的数据包应该发往哪个网络借口.
+
+ip route show
+ip rule show
+
+ip route flush table net2
+ip route add default via 192.168.18.254 dev em2 src 192.168.18.160 table net2
+ip rule add from 192.168.18.160 table net2
+
+ip route flush table net3
+ip route add default via 192.168.90.254 dev br100 src 192.168.90.160 table net3
+ip rule add from 192.168.90.160 table net3
+
+路由跟踪
+win:  tracert ip
+linux: traceroute ip
+time traceroute -I -z 0.005 -q 1 -n www.qq.com
+
+traceroute [-dFlnrvx][-f<存活数值>][-g<网关>...][-i<网络接口>][-m<存活数值>][-p<通信端口>][-s<来源地址>][-t<服务类型>][-w<超时秒数>][主机名称或IP地址][数据包大小]
+
+traceroute -q 4 www.qq.com 表示向每个网关发送 4 个数据包, 默认是 3 个数据包.
+1) 使用 UDP 包(默认选项是 -U)
+2）使用 TCP 包 选项是 -T
+3）使用 ICMP 包 选项是 -I
+
+有时 traceroute 一台主机时, 会看到一些行是以星号 "*" 表示的.这种情况可能是防火墙封掉了 ICMP 的返回信息, 所以得不到相关的数据包返回数据.
+一般来说, 如果到一个节点之后出现了 3 个星号, 就意味着到这个节点之后的网络已经中断了(大部分是被 GFW 通过静态路由丢弃了).
+碰到这种情况继续等待一下, 如果在等待过几个节点之后探测信息又恢复了, 那说明只是个别节点不响应而已, 但网络还是通的.
+
+-d 使用 Socket 层级的排错功能.
+-f 设置第一个检测数据包的存活数值 TTL 的大小.
+-F 设置勿离断位.
+-g 设置来源路由网关, 最多可设置 8 个.
+-i 使用指定的网络接口送出数据包.
+-I 使用 ICMP 回应取代 UDP 资料信息.
+-m 设置检测数据包的最大存活数值 TTL 的大小.
+-n 直接使用 IP 地址而非主机名称.
+-p 设置 UDP 传输协议的通信端口.
+-r 忽略普通的 Routing Table, 直接将数据包送到远端主机上.
+-s 设置本地主机送出数据包的 IP 地址.
+-t 设置检测数据包的 TOS 数值.
+-v 详细显示指令的执行过程.
+-w 设置等待远端主机回报的时间.
+-x 开启或关闭数据包的正确性检验.
+-z 设置探测包的发送间隔, 默认 0, 即连续发送. 设置这个的目的是因为有些路由器设置了 icmp rate limit. 为了应付 DOS 攻击而限制端口发出的 icmp 的发送速率.
+
+gdst => wuxi
+wx的端口映射可能存在问题
+curl -vvv --connect-timeout 10 http://61.177.139.221:12180/pscms_datas_web/test.html
+curl -vvv --connect-timeout 10 http://122.193.191.170:12180/pscms_datas_web/test.html
+
+curl http://61.177.139.221:12180/pscms_datas_web/test.html
+curl http://61.177.139.221:5595/pscms_datas_web/test.html
+curl http://61.177.139.221:5595/pscms_dc_web/login
+
+wget-XGET http://61.177.139.221:12180/pscms_datas_web/test.html
+
+telnet 61.177.139.221 12180
+nmap -p12180 61.177.139.221
+
+time traceroute -I -z 0.005 -q 1 -n datas.surfilter.com
+time traceroute -I -z 0.005 -q 1 -n 61.177.139.221
