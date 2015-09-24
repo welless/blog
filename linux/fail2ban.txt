@@ -1,0 +1,27 @@
+vi /etc/yum.repos.d/CentOS-Base.repo
+
+[atrpms] 
+name=Red Hat Enterprise Linux $releasever - $basearch - ATrpms 
+baseurl=http://dl.atrpms.net/el$releasever-$basearch/atrpms/stable 
+gpgkey=http://ATrpms.net/RPM-GPG-KEY.atrpms 
+gpgcheck=1 
+enabled=1
+
+yum -y install fail2ban
+
+vi /etc/fail2ban/filter.d/sshd.conf
+
+
+vi /etc/fail2ban/fail2ban.conf
+logtarget = /var/log/fail2ban.log
+
+vi /etc/fail2ban/jail.conf
+bantime  = 20000
+maxretry = 50
+#           sendmail-whois[name=SSH, dest=root, sender=fail2ban@example.com]
+
+多端口
+action   = iptables-multiport[name=BadBots, port="http,https"]
+
+service fail2ban status
+chkconfig fail2ban on
