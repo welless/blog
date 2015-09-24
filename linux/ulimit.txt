@@ -1,0 +1,61 @@
+ulimit 用于 shell 启动进程所占用的资源。
+可以使用该命令查看进程占用资源的情况。
+使用方法：ulimit [-acdfHlmnpsStvw] [size]
+-H 设置硬件资源限制.
+-S 设置软件资源限制.
+-a 显示当前所有的资源限制.
+-c size: 设置 core 文件的最大值. 单位: blocks
+-d size: 设置数据段的最大值. 单位: kbytes
+    ulimit -d unlimited
+-f size: 设置创建文件的最大值. 单位: blocks
+-l size: 设置在内存中锁定进程的最大值. 单位: kbytes
+-m size: 设置可以使用的常驻内存的最大值. 单位: kbytes
+    ulimit -m unlimited
+-n size: 设置内核可以同时打开的文件描述符的最大值【每个进程可以打开的文件数目】【也包含打开的 SOCKET 数量, 可影响 MySQL 的并发连接数目】. 单位: n
+-p size: 设置管道缓冲区的最大值.单位: kbytes
+-s size: 设置堆栈的最大值.单位: kbytes
+    ulimit -s unlimited
+-t size:设置CPU使用时间的最大上限. 单位: seconds
+    ulimit -t unlimited
+-v size: 设置虚拟内存的最大值. 单位: kbytes 5
+-u 设置各 linux 用户的最大进程数
+    ulimit -u 10000
+
+============== 1 =================
+echo "ulimit -SHn 51200"  >> /etc/rc.load
+echo "ulimit -SHn 51200"  >> /etc/profile
+
+ulimit -l unlimited
+ulimit -u 409600
+ulimit -n 409600
+
+============== 2 =================
+/etc/security/limits.d/90-nproc.conf
+* soft nproc 409600
+
+============== 3 =================
+调整文件句柄打开数及网络 TCP 堆栈和连接参数：
+a) 修改 /etc/security/limits.conf 加入：
+* soft nofile 409600
+* hard nofile 409600
+* soft noproc 409600
+* hard noproc 409600
+
+说明：* 代表针对所有用户
+nofile 是代表最大文件打开数
+noproc 是代表最大进程数
+
+============== 4 =================
+b) 修改 /etc/sysctl.conf 加入：
+fs.file-max = 409600
+net.core.somaxconn = 2048
+net.ipv4.tcp_sack = 1
+net.core.rmem_default = 262144
+net.core.wmem_default = 262144
+net.core.rmem_max = 262144
+net.core.wmem_max = 262144
+net.ipv4.tcp_fin_timeout = 30
+
+============== 5 =================
+c) 运行下面命令使修改生效
+sysctl -p
