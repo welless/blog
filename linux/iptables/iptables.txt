@@ -1,0 +1,152 @@
+service iptables start/stop/restart/save
+
+/etc/sysconfig/iptables -A INPUT -s 10.61.2.0/24 -j ACCEPT
+
+命令行:
+iptables -I INPUT 9 -s 10.61.2.0/24 -j ACCEPT
+iptables -I INPUT -p tcp --dport 5900:6000 -j ACCEPT
+
+-I: 插入一条规则, 插入到指定位置 9, 默认插入到首部.
+
+iptables -L
+
+ssh 规则
+iptables -A INPUT -s 213.10.10.13 -d 192.168.1.1 -p TCP --dport 22 -j ACCEPT
+
+-A: 附加 INPUT 规则链, 默认插入到尾部.
+-s: 来源 IP, 例子中就是当前登录 ssh 所用的电脑 IP
+-d: 目的 IP, 例子中就是服务器 IP
+-p: 通信协议
+–-dport: 目的端口, 例子中是 ssh 默认端口 22
+-j: 代表 "Jump", 例子中是所有之前的规则都匹配, 则接受数据包
+
+iptalbes 的三个表
+filter: 这个表主要用于过滤包的, 是系统预设的表, 这个表是用的最多的. 内建三个链 INPUT、OUTPUT 以及 FORWARD
+		INPUT   作用于进入本机的包;
+		OUTPUT  作用于本机送出的包;
+		FORWARD 作用于那些跟本机无关的包.
+NAT: 主要用处是网络地址转换, 也有三个链.
+		PREROUTING  链的作用是在包刚刚到达防火墙时改变它的目的地址, 如果需要的话;
+		OUTPUT      链改变本地产生的包的目的地址;
+		POSTROUTING 链在包就要离开防火墙之前改变其源地址.
+mangle: 这个表主要是用于给数据包打标记, 然后根据标记去操作那些包.
+raw: 这个表拥有的动作是 NOTRACK, 它的优先级高于其他表, 也高于连接追踪 conntrack,
+      若想要一个数据包不被系统追踪, 这个表默认系统是没有的.
+
+A. 查看规则以及清除规则
+iptables -t nat -nvL --line-numbers
+-t   后面跟表名;
+-nvL 即查看该表的规则;
+-n   表示不针对 IP 反解析主机名;
+-L   表示列出的意思;
+-v   表示列出的信息更加详细;
+-–line-numbers 表示给每行规则前面加个编号
+如果不加 -t, 则打印 filter 表的相关信息.
+
+iptables -F
+iptables -Z
+不加 -t 默认是针对表 filter 来操作的.
+-F 表示把所有规则全部删除;
+-Z 表示把包以及流量计数器置零(很有用)
+
+iptables -L INPUT --line-numbers
+iptables -D OUTPUT 1
+
+B. 增加/删除一条规则
+iptables -A INPUT -s 10.0.2.35 -p tcp --sport 1234 -d 10.0.2.68 --dport 80 -j DROP
+这就是增加了一条规则, 省略 -t 所以针对的是 filter 表.
+-A 表示增加一条规则, 默认插入到尾部, 后面的 INPUT 即链名称, 还可以是 OUTPUT 或 FORWARD;
+	-I 表示插入一条规则, 默认插入到首部;
+	-D 删除一条规则;
+	-P 设置指定链的默认策略(policy)
+-s 源地址;
+-p 协议(tcp, udp, icmp);
+--sport/--dport 源端口/目标端口, 必须和 -p 选项一起使用;
+-d 目的 IP(主要针对内网或者外网);
+-j 动作(DROP 即把包丢掉, REJECT 即包拒绝; ACCEPT 即允许包).
+
+iptables -P INPUT DROP
+-P 后面跟链名, 策略内容为 DROP 或 ACCEPT, 默认 ACCEPT.
+注意: 如果连接远程服务器, 千万不要随便敲这个命令, 因为一旦敲完回车就会断掉.
+这个策略一旦设定后, 只能使用 iptables -P ACCEPT 才能恢复成原始状态, 而不能使用 -F 参数
+
+关于 icmp 的包有一个比较常见的应用
+iptables -I INPUT -p icmp --icmp-type 8 -j DROP
+--icmp-type 这个选项是要跟 -p icmp 一起使用的, 后面指定类型编号.
+这个 8 指的是能在本机 ping 其他机器, 而其他机器不能 ping 本机.
+
+NAT:
+假设机器上有两块网卡 eth0 和 eth1, 其中 eth0 的 IP 为 10.0.2.68, eth1 的 IP 为 192.168.1.2
+eth0 连接了 internet 但 eth1 没有连接, 现在有另一台机器(192.168.1.3) 和 eth1 是互通的,
+那么如何设置也能够让连接 eth1 的这台机器也能够连接到 internet(即能和 10.0.2.68 互通)?
+
+echo "1" > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j MASQUERADE
+第一个命令涉及到了内核参数相关的配置文件, 它的目的是为了打开路由转发功能.
+第二个命令是 iptables 对 NAT 表做了一个 IP 转发的操作, -o 选项后跟设备名表示出口的网卡, MASQUERADE 表示伪装的意思.
+
+参数说明:
+-i 指定网卡.
+-i --in-interface [!] [name]
+i --进入的(网络)接口 [!][名称]
+这是包经由该接口接收的可选的入口名称, 包通过该接口接收(在链 INPUT、FORWORD 和 PREROUTING 中进入的包).
+当在接口名前使用 "!" 说明后, 指的是相反的名称. 如果接口名后面加上 "+", 则所有以此接口名开头的接口都会被匹配.
+如果这个选项被忽略, 会假设为 "+", 那么将匹配任意接口.
+
+-o --out-interface [!][name]
+-o --输出接口[名称]
+这是包经由该接口送出的可选的出口名称, 包通过该接口输出(在链 OUTPUT、FORWARD 和 POSTROUTING 中送出的包).
+当在接口名前使用 "!" 说明后, 指的是相反的名称. 如果接口名后面加上 "+", 则所有以此接口名开头的接口都会被匹配.
+如果这个选项被忽略, 会假设为 "+", 那么将匹配所有任意接口.
+
+iptables -t nat -N SHADOWSOCKS
+创建一条新的自定义链
+
+术语:
+icmp: Internet Control Message Protocol
+
+python -m SimpleHTTPServer
+
+service iptables status
+iptables -nL --line-numbers
+
+iptables -I INPUT -p tcp --dport 20450:20480 -j ACCEPT
+iptables -I INPUT -p tcp -m multiport --dport 20,21 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8000 -j ACCEPT
+iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+iptables -I INPUT -p tcp --dport 9200:9400 -j ACCEPT
+iptables -I INPUT -p tcp --dport 31000:33000 -j ACCEPT
+iptables -I INPUT -p tcp --dport 22 -j ACCEPT
+iptables -I INPUT -p tcp -m multiport --dport 20,21,22,122,222,443,12180,8080,8443,8000 -j ACCEPT
+iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -I INPUT -p icmp -j ACCEPT // 允许 icmp 包进入(ping)
+iptables -P INPUT DROP
+
+iptables -I INPUT -p tcp -m multiport --dport 20,21,20450:20480 -j ACCEPT
+
+iptables -I INPUT -s 45.114.11.34 -j DROP
+iptables -I INPUT -s 218.241.28.35 -j DROP
+
+添加一条入站规则: 对进来的包的状态进行检测. 已经建立 tcp 连接的包以及该连接相关的包允许通过.
+允许已经建立和相关的数据包进入:
+iptables -I INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+iptables -D INPUT 5
+
+iptables -A INPUT -s localhost -d localhost -j ACCEPT // 允许本地的数据包
+
+-m 参数意义:
+iptables 可以使用扩展模块来进行数据包的匹配, 语法就是 -m module_name, 所以
+-m tcp 的意思是使用 tcp 扩展模块的功能 (tcp 扩展模块提供了 --dport, --tcp-flags, --sync 等功能)
+其实只用 -p tcp 的话, iptables 也会默认的使用 -m tcp 来调用 tcp 模块提供的功能.
+但是 -p tcp 和 -m tcp 是两个不同层面的东西, 一个是说当前规则作用于 tcp 协议包, 而后一个是说明要使用 iptables 的 tcp 模块的功能(--dport 等)
+参数:
+-m state --state
+范例:
+iptables -A INPUT -m state --state RELATED,ESTABLISHED
+说明
+用来比对联机状态, 联机状态共有四种: INVALID、ESTABLISHED、NEW 和 RELATED.
+INVALID 表示该封包的联机编号(Session ID)无法辨识或编号不正确.
+ESTABLISHED 表示该封包属于某个已经建立的联机.
+NEW 表示该封包想要起始一个联机(重设联机或将联机重导向).
+RELATED 表示该封包是属于某个已经建立的联机, 所建立的新联机.
