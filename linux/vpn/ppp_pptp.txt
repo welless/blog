@@ -1,0 +1,56 @@
+第一步: 检测是否符合 pptp 的搭建环境的要求
+服务器版本: CentOs 6.4 xen vps
+如果检查结果没有这些支持的话, 是不能安装 pptp 的. 执行指令:
+# modprobe ppp-compress-18 && echo ok
+# modprobe ppp_mppe
+
+这条执行执行后, 显示"ok"则表明通过. 不过接下来还需要做另一个检查, 输入指令:
+# cat /dev/net/tun
+如果这条指令显示结果为下面的文本, 则表明通过:
+cat: /dev/net/tun: File descriptor in bad state
+
+上述两条均通过, 才能安装 pptp. 否则就只能考虑 openvpn, 或者请你的服务商来解决这个问题.
+CentOS 6.4内核版本在 2.6.15 以上, 都默认集成了 MPPE 和 PPP, 因此下面检查可以忽略:
+# rpm -q ppp // 查询当前系统的 ppp 是否默认集成了, 以及 ppp 的版本
+
+检查 PPP 是否支持 MPPE
+用以下命令检查 PPP 是否支持 MPPE:
+# strings '/usr/sbin/pppd'| grep -i mppe | wc --lines
+如果以上命令输出为"0"则表示不支持; 输出为"30"或更大的数字就表示支持, MPPE(Microsoft Point to Point Encryption, 微软点对点加密).
+
+因为 pptpd 需要 MPPE 的支持, 所以首先检测系统是否符已经编译了 MPPE, 执行如下 shell, 如果返回 CONFIG_PPP_MPPE=y 表示可以安装 pptpd, 如果没有请更换版本.
+# zgrep MPPE /proc/config.gz
+
+
+彻底解决不能连上 pptp vpn 或连上了 pptp vpn, 不到 5 分钟就自动断开的问题
+首先修改 windows 客户端. 也就是 Windows 自带的 VPN 拨号, 以管理员身份运行 regedit, 然后查找如下字段 TcpPortNumber,
+查找到了以后, 用 10 进制编辑该项的值, 修改成跟服务器端一样的端口号, 比如 1823. 注册表的项值在项
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}]\0001 的下面, 修改后即可.
+(我在 vista 下的注册表里找到了 TcpPortNumber.tcpportnumber 在 win7 的注册表里的位置为
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}]\0003, 所以在 win7 下, 也可连上 pptp vpn server.)
+参考: http://superuser.com/questions/381362/change-pptp-control-connections-tcp-port-number
+	  http://superuser.com/questions/562118/how-to-find-the-tcpportnumber-in-win7s-registry 
+
+服务器端的操作: 登录 putty, 输入命令:
+iptables -t nat -I PREROUTING -p tcp --dport 1823 -j REDIRECT --to-ports 1723 # (这个才是有效的命令)) 回车即可。
+原理是本地 Windows 机器的 1823 端口连接服务器的 1823 端口, 服务器收到连接 1823 端口的请求后, 把连接转发到服务器的 1723 端口. (pptp vpn server 的 1723 端口是改不了的.)
+
+这样就可顺利突破 gfw 封锁服务器的 1723 端口的卑鄙行径, 从而成功连上 pptp vpn server而翻墙.
+(如果连不上, 或连上不到 5 分钟就断开了, 就多连二三次, 一旦连上并超过 5 分钟未断开, 就可以一直保持连接状态了. 我实测成功)
+参考：http://askubuntu.com/questions/175449/what-types-of-vpn-virtual-servers-allow-to-change-default-port
+建议把 iptables -t nat -I PREROUTING -p tcp --dport 1823 -j REDIRECT --to-ports 1723 # 加到 /etc/rc.local 里面, 免得重启 vps 后, 又要手动运行一遍该命令.
+(还有人使用的 iptables 规则是:
+# iptables -A INPUT -i eth0 -p tcp --dport xxxx -j ACCEPT
+# iptables -A PREROUTING -t nat -i eth0 -p tcp --dport xxxx -j REDIRECT --to-port 1723)
+
+网上有文章说 "修改 /etc/services 这个配置文件, 假如是想把 pptp 的默认端口号由原来的 1723 修改为 1724 的话, 只需要添加如下两行即可:
+pptp            1724/tcp
+pptp            1724/udp", 这是完全无效的, 不必去动 /etc/services 这个配置文件.
+
+网上还有其他方法：
+1. 可以用 socket 监听 vps 上的某个端口, 比如 1823, 然后把对 1823 端口的连接请求转发到 pptpd 的 1723 端口.
+2. 用 rinetd 转发.
+3. 在本机做个端口转发软件, 比如访问 127.0.0.1:5110, 自动转到 pptpvpnserverIP: 1723
+(这个恐怕不行, 因为 pptp vpn 客户端没有"设置前置代理"的选项.)
+
+第 1 种办法我还未尝试; 第 2 种方法我试过, 是不行的.
