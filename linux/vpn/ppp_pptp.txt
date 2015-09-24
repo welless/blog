@@ -10,7 +10,7 @@
 cat: /dev/net/tun: File descriptor in bad state
 
 上述两条均通过, 才能安装 pptp. 否则就只能考虑 openvpn, 或者请你的服务商来解决这个问题.
-CentOS 6.4内核版本在 2.6.15 以上, 都默认集成了 MPPE 和 PPP, 因此下面检查可以忽略:
+CentOS 6.4 内核版本在 2.6.15 以上, 都默认集成了 MPPE 和 PPP, 因此下面检查可以忽略:
 # rpm -q ppp // 查询当前系统的 ppp 是否默认集成了, 以及 ppp 的版本
 
 检查 PPP 是否支持 MPPE
@@ -21,7 +21,6 @@ CentOS 6.4内核版本在 2.6.15 以上, 都默认集成了 MPPE 和 PPP, 因此
 因为 pptpd 需要 MPPE 的支持, 所以首先检测系统是否符已经编译了 MPPE, 执行如下 shell, 如果返回 CONFIG_PPP_MPPE=y 表示可以安装 pptpd, 如果没有请更换版本.
 # zgrep MPPE /proc/config.gz
 
-
 彻底解决不能连上 pptp vpn 或连上了 pptp vpn, 不到 5 分钟就自动断开的问题
 首先修改 windows 客户端. 也就是 Windows 自带的 VPN 拨号, 以管理员身份运行 regedit, 然后查找如下字段 TcpPortNumber,
 查找到了以后, 用 10 进制编辑该项的值, 修改成跟服务器端一样的端口号, 比如 1823. 注册表的项值在项
@@ -29,7 +28,7 @@ CentOS 6.4内核版本在 2.6.15 以上, 都默认集成了 MPPE 和 PPP, 因此
 (我在 vista 下的注册表里找到了 TcpPortNumber.tcpportnumber 在 win7 的注册表里的位置为
 [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002bE10318}]\0003, 所以在 win7 下, 也可连上 pptp vpn server.)
 参考: http://superuser.com/questions/381362/change-pptp-control-connections-tcp-port-number
-	  http://superuser.com/questions/562118/how-to-find-the-tcpportnumber-in-win7s-registry 
+	http://superuser.com/questions/562118/how-to-find-the-tcpportnumber-in-win7s-registry 
 
 服务器端的操作: 登录 putty, 输入命令:
 iptables -t nat -I PREROUTING -p tcp --dport 1823 -j REDIRECT --to-ports 1723 # (这个才是有效的命令)) 回车即可。
