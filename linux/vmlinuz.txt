@@ -1,0 +1,8 @@
+initrd.img 是一个小的映象，包含一个最小的 linux 系统
+通常的步骤是先启动内核，然后内核挂载 initrd.img，并执行里面的脚本来进一步挂载各种各样的模块，
+然后发现真正的 root 分区，挂载并执行 /sbin/init... ...
+initrd.img 是可选的，如果没有 initrd.img, 内核就试图直接挂载 root 分区
+
+vmlinuz 是可引导的、压缩的内核。“vm”代表 “Virtual Memory”
+Linux 支持虚拟内存，不像老的操作系统比如 DOS 有 640KB 内存的限制
+Linux 能够使用硬盘空间作为虚拟内存，因此得名“vm”。另外：vmlinux 是未压缩的内核，vmlinuz 是 vmlinux 的压缩文件
