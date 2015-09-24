@@ -1,0 +1,23 @@
+Linux 的 Load Average 的含义
+在 Linux 里运行 top 和一些命令的时候，都可以看到 Load Average 的信息。
+了解到这个是有关系统负载的信息，而且越小越好。
+
+系统平均负载被定义为在特定时间间隔内运行队列中的平均进程树。如果一个进程满足以下条件则其就会位于运行队列中：
+	- 它没有在等待 I/O 操作的结果
+	- 它没有主动进入等待状态(也就是没有调用'wait')
+	- 没有被停止(例如：等待终止)
+	====== 这里很关键，不是每个进程都被计算在内的。
+
+Load Average 如何计算
+	为了使内核可以高效计算 Load Average，采用了 fixed-point arithmetic。
+	fixed-point arithmetic 是一种非常快速的模拟浮点运算的方法，特别是在没有 FPU（float point unit）部件的处理器上，非常有用。
+	
+	计算公式：load(t) = load(t - 1) e^(-5/60) + n (1 - e^(-5/60))，迭代计算，其中 n 为 run-queue length。
+	由 Exponential Smoothing 方程有，Y(t) = Y(t - 1) + a * [X(t) - Y(t - 1)],
+		where X(t) is the input raw data, Y(t - 1) is the value due to the previoussmoothing iteration and Y(t) is the new smoothed value.
+	令 a = 1 - b，b 为 e^(-5/60)，就可以得到 Load Average 的计算公式。 
+	采用此公式的好处：局部的 Load 抖动不会对 Load Average 造成重大影响，使其平滑。 
+
+Load Average 释疑 
+	一般来说只要每个 CPU 的当前活动进程数不大于 2 那么系统的性能就是良好的，如果每个 CPU 的任务数大于 5，那么就表示这台机器的性能有严重问题。
+	假设系统有两个 CPU，那么其每个 CPU 的当前任务数为：Load Average/2。这时候取得的数值可以参照上述 2-5 的标准来进行判断了。
