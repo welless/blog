@@ -1,0 +1,84 @@
+nslookup
+
+> nslookup
+> server 8.8.8.8
+> set type=a
+> google.com
+
+> nslookup www.oschina.net
+> nslookup -qt=A www.oschina.net
+> nslookup -qt=A www.oschina.net 8.8.8.8
+
+通过 tcp 方式查询
+> nslookup -vc twitter.com 8.8.8.8
+
+域名解析为 IP
+> set qt=a
+
+IP 解析为 域名
+> set qt=ptr
+
+D:\> nslookup
+默认服务器:  public1.114dns.com
+Address:  114.114.114.114
+
+> help
+命令:   (标识符以大写表示，[] 表示可选)
+set OPTION      - 设置选项
+    type=X              - 设置查询类型(如 A、AAAA、A+AAAA、ANY、CNAME、MX
+                          NS、PTR、SOA 和 SRV)
+ls [opt] DOMAIN [> FILE] - 列出 DOMAIN 中的地址(可选: 输出到文件 FILE)
+    -a          -  列出规范名称和别名
+    -d          -  列出所有记录
+    -t TYPE     -  列出给定 RFC 记录类型(例如 A、CNAME、MX、NS 和 PTR 等)
+                   的记录
+exit            - 退出程序
+
+
+在 DNS 查询过程中有两种查询类型：递归查询和迭代查询
+１、递归查询
+当 DNS 客户端按照它的 DNS 服务器列表向 DNS 服务器发出查询请求的时候, 接受查询请求的 DNS 服务器和客户端之间的查询关系一般都是递归查询.
+该 DNS 服务器会查询自己的缓存或区域文件, 如果没有找到结果就向别的 DNS 服务器查询.
+递归查询时客户端得到的结果只能是成功或失败, 接受查询的 DNS 服务器必须告诉客户端请求查询的 IP 地址或者告诉客户端找不到请求的地址及找不到的原因(查询超时或遇到错误).
+不是所有的查询都是递归查询, 只有满足以下条件才会进行递归查询, 否则将进行迭代查询.
+a、客户端要求递归查询.
+b、DNS 服务器接受递归查询.
+注意: 因为递归查询比较占用系统资源, 有安全方面的隐患, 所以可以设置 DNS 服务器不接受递归查询.
+
+2、迭代查询
+迭代查询又称为简单查询, 是指 DNS 服务器根据自己的缓存或区域文件, 以最佳结果作答. 如果 DNS 服务器无法解析, 它可能返回一个指针.
+指针指向可能有目标域名记录的 DNS 服务器, 继续该过程, 直到找到拥有目标记录的 DNS 服务器, 或者直到查询出错或超时为止.
+注意：DNS 服务器之间一般都是发送迭代查询的请求, 除非 DNS 服务器接受了一个递归查询请求, 并且无法解析该查询,
+	这时该服务器将向转发器中的 DNS 服务器发送递归查询请求. 如果没有设置转发器, 该服务器将向根提示中的根服务器发送迭代查询的请求.
+
+根域名服务器: 是互联网域名解析系统(DNS)中最高级别的域名服务器, 全球有 386 台根服务器, 被编号为 A 到 M 共 13 个标号.
+中国北京有两台编号为 F 的根服务器镜像, 编号为 I、J、L 的各一台, 共 5 台镜像, 在香港有 A、F、I、J、L 五台根服务器镜像, 全部借由任播(Anycast)技术,
+所有编号相同的根服务器都是同一个 IP, 386 台根服务器总共只使用了 13 个 IP, 因此可以抵抗针对其所进行的分布式拒绝服务攻击(DDoS).
+
+zone-transfer
+使用 nmap 扫描 DNS 域传送泄露漏洞:
+nmap --script dns-zone-transfer --script-args dns-zone-transfer.domain=nwpu.edu.cn -p 53 -Pn dns.nwpu.edu.cn
+1. nmap --script dns-zone-transfer 表示加载 nmap 文件夹下的脚本文件 dns-zone-transfer.nse, 扩展名 .nse 可省略
+2. --script-args dns-zone-transfer.domain=zonetransfer.me 向脚本传递参数, 设置列出记录的域是 nwpu.edu.cn
+3. -p 53 设置扫描 53 端口
+4. -Pn 设置通过 Ping 发现主机是否存活
+
+> nslookup
+> server dns.nwpu.edu.cn
+> ls nwpu.edu.cn
+
+> cat ls.bat
+echo ls %1 | nslookup - %2
+
+
+1) 网络的拓扑结构, 服务器集中的 IP 地址段
+2) 数据库服务器的 IP 地址，例如 nwpudb2.nwpu.edu.cn
+3) 测试服务器的 IP 地址, 例如 test.nwpu.edu.cn
+4) VPN 服务器地址泄露
+5) 其他敏感服务器
+
+情况 DNS 缓存
+> ipconfig /flushdns
+
+禁用 DNS 缓存, 直到下次重启计算机
+> net stop dnscache
